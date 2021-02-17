@@ -1,10 +1,8 @@
 import React from 'react';
 import api from '../lib/api';
-import Button from '@material-ui/core/Button';
 import Container from '@material-ui/core/Container';
 import Box from '@material-ui/core/Box';
 import DiffsTable from './DiffsTable';
-import { withStyles } from '@material-ui/core/styles';
 import { Card, Typography } from '@material-ui/core';
 
 const fetchUsersDiff = async () => {

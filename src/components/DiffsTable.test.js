@@ -1,8 +1,7 @@
 import React from 'react';
 import { shallow } from 'enzyme';
 import DiffsTable from './DiffsTable';
-import { Button, TableCell, TableRow } from '@material-ui/core';
-import DiffsTableFooter from './DiffsTableFooter';
+import { TableCell, TableRow } from '@material-ui/core';
 
 describe('<DiffsTable />', () => {
   describe('render()', () => {

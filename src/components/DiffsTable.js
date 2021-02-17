@@ -1,6 +1,6 @@
 import React from 'react';
 import DiffsTableFooter from './DiffsTableFooter'
-import { Card, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TableSortLabel } from '@material-ui/core';
+import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TableSortLabel } from '@material-ui/core';
 
 /*
 * Using the same style as in the App.js example.
@@ -10,7 +10,8 @@ import { Card, Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
 *   - Responsive to screen size
 *   - Default reverse chronological sorting
 *   - Sorting functionality on date column
-*   - Maintaining sort direction on update 
+*   - Resorting on update
+* 
 *
 * Props should have fetch function that returns array with objects in form:
   {
@@ -44,7 +45,7 @@ export class DiffsTable extends React.Component {
 
     try {
       let response = await this.props.fetch()
-      if (response.code == 200) {
+      if (response.code === 200) {
         this.setState({ data: response.data, rows: this.sortRows(response.data, this.state.sortDesc) })
         this.setComponentState('default')
       }
@@ -75,14 +76,15 @@ export class DiffsTable extends React.Component {
   sortRows(data, sortDesc) {
     data.sort((a,b) => {
 
-      if(sortDesc == true) {
+      if(sortDesc === true) {
         return b.timestamp - a.timestamp
       }
 
-      if(sortDesc == false) {
+      if(sortDesc === false) {
         return a.timestamp - b.timestamp
       }
 
+      return 0
     })
 
     return this.createRows(data)
@@ -104,7 +106,7 @@ export class DiffsTable extends React.Component {
                 {this.state.columns.map((column, i) => {
                   let columnCell = <TableCell key={i}>{column.text}</TableCell>
 
-                  if(column.sort == true) {
+                  if(column.sort === true) {
                     columnCell = (
                       <TableCell key={i}>
                         <TableSortLabel onClick={this.handleSort.bind(this)}>

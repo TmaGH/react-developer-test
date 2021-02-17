@@ -1,6 +1,6 @@
 import React from 'react';
 import { shallow } from 'enzyme';
-import { Box, Button, CircularProgress, TableCell, TableRow, Typography } from '@material-ui/core';
+import { Box, Button, CircularProgress, Typography } from '@material-ui/core';
 import DiffsTableFooter from './DiffsTableFooter';
 
 describe('<DiffsTable />', () => {
