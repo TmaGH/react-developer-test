@@ -1,6 +1,6 @@
 import React from 'react';
 import DiffsTableFooter from './DiffsTableFooter'
-import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from '@material-ui/core';
+import { Card, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TableSortLabel } from '@material-ui/core';
 
 /*
 * Using the same style as in the App.js example.
@@ -10,8 +10,7 @@ import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from
 *   - Responsive to screen size
 *   - Default reverse chronological sorting
 *   - Sorting functionality on date column
-*   - Resorting on update
-* 
+*   - Maintaining sort direction on update 
 *
 * Props should have fetch function that returns array with objects in form:
   {
@@ -28,9 +27,11 @@ export class DiffsTable extends React.Component {
     super(props)
     this.state = {
       diffsArray: [],
-      columns: ["Date", "User ID", "Old value", "New value"],
+      columns: [{text: "Date", sort: true}, {text: "User ID"}, {text: "Old value"}, {text: "New value"}],
       rows: [],
-      state: 'default'
+      data: [],
+      state: 'default',
+      sortDesc: true
     }
   }
 
@@ -40,65 +41,107 @@ export class DiffsTable extends React.Component {
 
   async fetchUpdate() {
     this.setComponentState('loading')
-    let response = await this.props.fetch()
 
-    if (response.code == 200) {
-      this.setState({ rows: this.createRows(response.data) })
-      this.setComponentState('default')
-    } else {
-      if (response.data.code == 500) {
-        this.setComponentState('error')
+    try {
+      let response = await this.props.fetch()
+      if (response.code == 200) {
+        this.setState({ data: response.data, rows: this.sortRows(response.data, this.state.sortDesc) })
+        this.setComponentState('default')
       }
+
+    } catch (error) {
+      // There's only one type of error here so this simple error handling is enough
+      this.setComponentState('error')
     }
   }
 
   setComponentState(stateStr) {
-    this.setState({state: stateStr})
+    this.setState({ state: stateStr })
   }
 
   createRows(data) {
-    // Nothing needs to be done here for now
-    return data
+    // Transform time to date string
+    let rows = data.map(diff => {
+      return {
+        id: diff.id,
+        timestamp: new Date(diff.timestamp).toLocaleDateString("fi"),
+        diff: diff.diff
+      }
+    })
+
+    return rows
+  }
+
+  sortRows(data, sortDesc) {
+    data.sort((a,b) => {
+
+      if(sortDesc == true) {
+        return b.timestamp - a.timestamp
+      }
+
+      if(sortDesc == false) {
+        return a.timestamp - b.timestamp
+      }
+
+    })
+
+    return this.createRows(data)
+  }
+
+  handleSort(event, property) {
+    let sortDesc = !this.state.sortDesc
+    this.setState({rows: this.sortRows(this.state.data, sortDesc), sortDesc: sortDesc})
   }
 
   /* Rendering columns and rows with as little hardcoding as possible */
   render() {
     return (
-      <TableContainer>
-        <Table>
-          <TableHead>
-            <TableRow>
+        <TableContainer>
+          <Table>
+            <TableHead>
+              <TableRow>
 
-              {this.state.columns.map((column, i) => (
+                {this.state.columns.map((column, i) => {
+                  let columnCell = <TableCell key={i}>{column.text}</TableCell>
 
-                <TableCell key={i}>{column}</TableCell>
+                  if(column.sort == true) {
+                    columnCell = (
+                      <TableCell key={i}>
+                        <TableSortLabel onClick={this.handleSort.bind(this)}>
+                        {column.text}
+                        </TableSortLabel>
+                      </TableCell>
+                    )
 
-              ))}
+                  }
 
-            </TableRow>
-          </TableHead>
-          <TableBody>
+                  return columnCell
+                  })}
 
-            {this.state.rows.map((row, i1) => {
+              </TableRow>
+            </TableHead>
+            <TableBody>
 
-              // This isn't necessary with the test data, but since the diff is an array, I would assume it's desired:
-              return row.diff.map((diff, i2) => (
-                <TableRow key={i1.toString() + i2}>
+              {this.state.rows.map((row, i1) => {
 
-                  <TableCell>{row.timestamp}</TableCell>
-                  <TableCell>{row.id}</TableCell>
-                  <TableCell>{diff.oldValue}</TableCell>
-                  <TableCell>{diff.newValue}</TableCell>
+                // This isn't necessary with the test data, but since the diff is an array, I would assume it's desired:
+                return row.diff.map((diff, i2) => (
+                  <TableRow key={i1.toString() + i2}>
 
-                </TableRow>
-              ))
+                    <TableCell>{row.timestamp}</TableCell>
+                    <TableCell>{row.id}</TableCell>
+                    <TableCell>{diff.oldValue}</TableCell>
+                    <TableCell>{diff.newValue}</TableCell>
 
-            })}
+                  </TableRow>
+                ))
 
-          </TableBody>
-          <DiffsTableFooter state={this.state.state} retry={this.fetchUpdate} loadmore={this.fetchUpdate}></DiffsTableFooter>
-        </Table>
-      </TableContainer>
+              })}
+
+            </TableBody>
+          </Table>
+          <DiffsTableFooter state={this.state.state} retry={this.fetchUpdate.bind(this)} loadmore={this.fetchUpdate.bind(this)}></DiffsTableFooter>
+        </TableContainer>
     );
   }
 };

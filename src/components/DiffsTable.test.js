@@ -1,8 +1,8 @@
 import React from 'react';
 import { shallow } from 'enzyme';
 import DiffsTable from './DiffsTable';
-import { TableCell, TableRow } from '@material-ui/core';
-import api from '../lib/api';
+import { Button, TableCell, TableRow } from '@material-ui/core';
+import DiffsTableFooter from './DiffsTableFooter';
 
 describe('<DiffsTable />', () => {
   describe('render()', () => {
@@ -15,39 +15,40 @@ describe('<DiffsTable />', () => {
         return {
           code: 200,
           data: [
-          {
-            id: "123456",
-            timestamp: "20202-10-20",
-            diff: [
-              { field: 'name', oldValue: 'Constantine Prescott Nathaniel Sr.', newValue: 'Constantine P. N. Sr.' },
-            ]
-          }
-        ]}
+            {
+              id: "123456",
+              timestamp: new Date('2020/2/19').getTime(),
+              diff: [
+                { field: 'name', oldValue: 'Constantine Prescott Nathaniel Sr.', newValue: 'Constantine P. N. Sr.' },
+              ]
+            },
+            {
+              id: "123456",
+              timestamp: new Date('2020/2/22').getTime(),
+              diff: [
+                { field: 'name', oldValue: 'Constantine Prescott Nathaniel Sr.', newValue: 'Constantine P. N. Sr.' },
+              ]
+            }
+          ]
+        }
       };
 
-      const wrapper = await shallow(<DiffsTable fetch={fetchData} />);
+      let wrapper = await shallow(<DiffsTable fetch={fetchData} />);
 
       // Props are set
       expect(wrapper.instance().props.fetch).toEqual(fetchData)
 
       // State is set
-      expect(wrapper.state().rows).toHaveLength(1)
+      expect(wrapper.state().rows).toHaveLength(2)
       expect(wrapper.state().columns).toHaveLength(4)
 
       // Rows are rendered
-      expect(wrapper.find(TableRow)).toHaveLength(2)
-      expect(wrapper.find(TableCell)).toHaveLength(8)
+      expect(wrapper.find(TableRow)).toHaveLength(3)
+      expect(wrapper.find(TableCell)).toHaveLength(4 * 3)
+
+      // Test default sorting
+      expect(wrapper.find(TableRow).at(1).find(TableCell).first().text()).toEqual("22.2.2020")
     });
-  
-    it('succesfully renders users diff from mockAPI', async () => {
-      const wrapper = await shallow(<DiffsTable fetch={api.getUsersDiff} />)
-
-    })
-
-    it('succesfully renders projects diff from mockAPI', async () => {
-      const wrapper = await shallow(<DiffsTable fetch={api.getProjectsDiff} />)
-
-    })
 
   });
 });
